@@ -7,10 +7,19 @@
                 $('form').on('submit', function(e) {
                     e.preventDefault();
                     let fileInput = $('input[type=file]', $(this))[0];
+                    let image = new Image();
+                    image.onload = function() {
+                        let context = $('#image_r')[0].getContext('2d');
+                        let canvas = context.canvas;
+                        let width = this.width;
+                        let height = this.height;
+                        canvas.width = width;
+                        canvas.height = height;
+                        context.drawImage(this, 0, 0, width, height);
+                    };
                     let reader = new FileReader();
                     reader.onload = function(e) {
-                        let str = e.target.result;
-                        $('.decomposed').attr('src', str);
+                        image.src = e.target.result;
                     };
                     reader.readAsDataURL(fileInput.files[0]);
                 });
@@ -23,9 +32,7 @@
             <button type="submit">Rozložit</button>
         </form>
         <p>
-            <img class="decomposed" id="image_r"/>
-            <img class="decomposed" id="image_g"/>
-            <img class="decomposed" id="image_b"/>
+            <canvas id="image_r"></canvas>
         </p>
     </body>
 </html>
