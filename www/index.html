@@ -4,25 +4,45 @@
         <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js" integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=" crossorigin="anonymous"></script>
         <script>
             jQuery(function($) {
+                function filterRed(data, i) {
+                    data[i + 1] = 0;
+                    data[i + 2] = 0;
+                }
+
+                function filterGreen(data, i) {
+                    data[i] = 0;
+                    data[i + 2] = 0;
+                }
+
+                function filterBlue(data, i) {
+                    data[i] = 0;
+                    data[i + 1] = 0;
+                }
+
+                function populateCanvas(canvasElement, image, filter) {
+                    let context = canvasElement.getContext('2d');
+                    let canvas = context.canvas;
+                    let width = image.width;
+                    let height = image.height;
+                    canvas.width = width;
+                    canvas.height = height;
+                    context.drawImage(image, 0, 0, width, height);
+                    let imageData = context.getImageData(0, 0, width, height);
+                    let rawImageData = imageData.data;
+                    for (let i = 0; i < rawImageData.length; i += 4) {
+                        filter(rawImageData, i);
+                    }
+                    context.putImageData(imageData, 0, 0);
+                }
+
                 $('form').on('submit', function(e) {
                     e.preventDefault();
                     let fileInput = $('input[type=file]', $(this))[0];
                     let image = new Image();
                     image.onload = function() {
-                        let context = $('#image_r')[0].getContext('2d');
-                        let canvas = context.canvas;
-                        let width = this.width;
-                        let height = this.height;
-                        canvas.width = width;
-                        canvas.height = height;
-                        context.drawImage(this, 0, 0, width, height);
-                        let imageData = context.getImageData(0, 0, width, height);
-                        let rawImageData = imageData.data;
-                        for (let i = 0; i < rawImageData.length; i += 4) {
-                            rawImageData[i + 1] = 0;
-                            rawImageData[i + 2] = 0;
-                        }
-                        context.putImageData(imageData, 0, 0);
+                        populateCanvas($('#image_r')[0], this, filterRed);
+                        populateCanvas($('#image_g')[0], this, filterGreen);
+                        populateCanvas($('#image_b')[0], this, filterBlue);
                     };
                     let reader = new FileReader();
                     reader.onload = function(e) {
@@ -40,6 +60,8 @@
         </form>
         <p>
             <canvas id="image_r"></canvas>
+            <canvas id="image_g"></canvas>
+            <canvas id="image_b"></canvas>
         </p>
     </body>
 </html>
