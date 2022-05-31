@@ -14,33 +14,57 @@
             <canvas id="image_b"></canvas>
         </p>
         <script>
-            function filterRed(data, i) {
-                data[i + 1] = 0;
-                data[i + 2] = 0;
+            class Pixel {
+                #r;
+                #g;
+                #b;
+
+                constructor(r, g, b) {
+                    this.#r = r;
+                    this.#g = g;
+                    this.#b = b;
+                }
+
+                r() {
+                    return this.#r;
+                }
+
+                g() {
+                    return this.#g;
+                }
+
+                b() {
+                    return this.#b;
+                }
+
+                filterRed() {
+                    return new Pixel(this.#r, 0, 0);
+                }
+
+                filterGreen() {
+                    return new Pixel(0, this.#g, 0);
+                }
+
+                filterBlue() {
+                    return new Pixel(0, 0, this.#b);
+                }
             }
 
-            function filterGreen(data, i) {
-                data[i] = 0;
-                data[i + 2] = 0;
-            }
-
-            function filterBlue(data, i) {
-                data[i] = 0;
-                data[i + 1] = 0;
-            }
-
-            function populateCanvas(canvasElement, image, filter) {
-                let context = canvasElement.getContext('2d');
-                let canvas = context.canvas;
-                let width = image.width;
-                let height = image.height;
+            function populateCanvas(canvasElement, image, transformation) {
+                const context = canvasElement.getContext('2d');
+                const canvas = context.canvas;
+                const width = image.width;
+                const height = image.height;
                 canvas.width = width;
                 canvas.height = height;
                 context.drawImage(image, 0, 0, width, height);
-                let imageData = context.getImageData(0, 0, width, height);
-                let rawImageData = imageData.data;
+                const imageData = context.getImageData(0, 0, width, height);
+                const rawImageData = imageData.data;
                 for (let i = 0; i < rawImageData.length; i += 4) {
-                    filter(rawImageData, i);
+                    const transformed = transformation(new Pixel(rawImageData[i], rawImageData[i + 1], rawImageData[i + 2]));
+                    rawImageData[i] = transformed.r();
+                    rawImageData[i + 1] = transformed.g();
+                    rawImageData[i + 2] = transformed.b();
                 }
                 context.putImageData(imageData, 0, 0);
             }
@@ -50,9 +74,9 @@
                 let file = new FormData(this).get('file');
                 let image = new Image();
                 image.onload = function () {
-                    populateCanvas(document.getElementById('image_r'), this, filterRed);
-                    populateCanvas(document.getElementById('image_g'), this, filterGreen);
-                    populateCanvas(document.getElementById('image_b'), this, filterBlue);
+                    populateCanvas(document.getElementById('image_r'), this, function(pixel) { return pixel.filterRed() });
+                    populateCanvas(document.getElementById('image_g'), this, function(pixel) { return pixel.filterGreen() });
+                    populateCanvas(document.getElementById('image_b'), this, function(pixel) { return pixel.filterBlue() });
                 };
                 let reader = new FileReader();
                 reader.onload = function (e) {
