@@ -69,20 +69,26 @@
                 context.putImageData(imageData, 0, 0);
             }
 
-            document.querySelector('form').addEventListener('submit', function (e) {
-                e.preventDefault();
-                let file = new FormData(this).get('file');
-                let image = new Image();
+            function repaint(file) {
+                const image = new Image();
                 image.onload = function () {
                     populateCanvas(document.getElementById('image_r'), this, function(pixel) { return pixel.filterRed() });
                     populateCanvas(document.getElementById('image_g'), this, function(pixel) { return pixel.filterGreen() });
                     populateCanvas(document.getElementById('image_b'), this, function(pixel) { return pixel.filterBlue() });
                 };
-                let reader = new FileReader();
+                const reader = new FileReader();
                 reader.onload = function (e) {
                     image.src = e.target.result;
                 };
                 reader.readAsDataURL(file);
+            }
+
+            document.querySelector('form').addEventListener('submit', function (e) {
+                e.preventDefault();
+                repaint(new FormData(this).get('file'));
+            });
+            document.querySelector("input[type='file']").addEventListener('change', function() {
+                repaint(this.files[0]);
             });
         </script>
     </body>
