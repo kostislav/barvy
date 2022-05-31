@@ -111,27 +111,32 @@
                         repaint(state.image, state.threshold);
                     }
                 }
+                function updateThreshold(newValue) {
+                    state.threshold = newValue;
+                    thresholdInput.value = newValue;
+                    thresholdSliderInput.value = newValue;
+                    repaintIfSelected();
+                }
+                function updateFile(newValue) {
+                    state.image = newValue;
+                    repaintIfSelected();
+                }
 
                 fileInput.addEventListener('change', function() {
                     const reader = new FileReader();
                     reader.onload = function (e) {
-                        state.image = e.target.result;
-                        repaintIfSelected();
+                        updateFile(e.target.result);
                     };
                     reader.readAsDataURL(this.files[0]);
                 });
                 thresholdSliderInput.addEventListener('change', function() {
-                    state.threshold = this.value;
-                    thresholdInput.value = this.value;
-                    repaintIfSelected();
+                    updateThreshold(this.value);
                 });
                 thresholdInput.addEventListener('change', function() {
-                    state.threshold = this.value;
-                    thresholdSliderInput.value = this.value;
-                    repaintIfSelected();
+                    updateThreshold(this.value);
                 });
-                thresholdSliderInput.value = state.threshold;
-                thresholdInput.value = state.threshold;
+
+                updateThreshold(state.threshold);
             })();
         </script>
     </body>
