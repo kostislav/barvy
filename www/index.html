@@ -102,41 +102,51 @@
                 const thresholdInput = document.querySelector("input[name='threshold']");
                 const fileInput = document.querySelector("input[name='file']");
 
-                let state = {
-                    threshold: 128,
-                    image: null
-                };
-                function repaintIfSelected() {
-                    if (state.image != null) {
-                        repaint(state.image, state.threshold);
+                class State {
+                    #threshold;
+                    #image;
+                    #onChange;
+
+                    constructor(initialThreshold, onChange) {
+                        this.#threshold = initialThreshold;
+                        this.#image = null;
+                        this.#onChange = onChange;
+                        onChange(initialThreshold, null);
+                    }
+
+                    updateThreshold(newValue) {
+                        if (this.#threshold !== newValue) {
+                            this.#threshold = newValue;
+                            this.#onChange(this.#threshold, this.#image);
+                        }
+                    }
+                    updateFile(newValue) {
+                        this.#image = newValue;
+                        this.#onChange(this.#threshold, this.#image);
                     }
                 }
-                function updateThreshold(newValue) {
-                    state.threshold = newValue;
-                    thresholdInput.value = newValue;
-                    thresholdSliderInput.value = newValue;
-                    repaintIfSelected();
-                }
-                function updateFile(newValue) {
-                    state.image = newValue;
-                    repaintIfSelected();
-                }
+
+                let state = new State(128, function(threshold, image) {
+                    thresholdInput.value = threshold;
+                    thresholdSliderInput.value = threshold;
+                    if (image != null) {
+                        repaint(image, threshold);
+                    }
+                });
 
                 fileInput.addEventListener('change', function() {
                     const reader = new FileReader();
                     reader.onload = function (e) {
-                        updateFile(e.target.result);
+                        state.updateFile(e.target.result);
                     };
                     reader.readAsDataURL(this.files[0]);
                 });
                 thresholdSliderInput.addEventListener('change', function() {
-                    updateThreshold(this.value);
+                    state.updateThreshold(this.value);
                 });
                 thresholdInput.addEventListener('change', function() {
-                    updateThreshold(this.value);
+                    state.updateThreshold(this.value);
                 });
-
-                updateThreshold(state.threshold);
             })();
         </script>
     </body>
