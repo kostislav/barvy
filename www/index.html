@@ -37,18 +37,29 @@
                     return this.#b;
                 }
 
-                filterRed() {
-                    return new Pixel(this.#r, 0, 0);
+                filterRed(threshold) {
+                    return Pixel.#filter(this.#r, threshold);
                 }
 
-                filterGreen() {
-                    return new Pixel(0, this.#g, 0);
+                filterGreen(threshold) {
+                    return Pixel.#filter(this.#g, threshold);
                 }
 
-                filterBlue() {
-                    return new Pixel(0, 0, this.#b);
+                filterBlue(threshold) {
+                    return Pixel.#filter(this.#b, threshold);
+                }
+
+                static #filter(value, threshold) {
+                    if (value >= threshold) {
+                        return WHITE;
+                    } else {
+                        return BLACK;
+                    }
                 }
             }
+
+            const BLACK = new Pixel(0, 0, 0);
+            const WHITE = new Pixel(255, 255, 255);
 
             function populateCanvas(canvasElement, image, transformation) {
                 const context = canvasElement.getContext('2d');
@@ -72,9 +83,9 @@
             function repaint(file) {
                 const image = new Image();
                 image.onload = function () {
-                    populateCanvas(document.getElementById('image_r'), this, function(pixel) { return pixel.filterRed() });
-                    populateCanvas(document.getElementById('image_g'), this, function(pixel) { return pixel.filterGreen() });
-                    populateCanvas(document.getElementById('image_b'), this, function(pixel) { return pixel.filterBlue() });
+                    populateCanvas(document.getElementById('image_r'), this, function(pixel) { return pixel.filterRed(128) });
+                    populateCanvas(document.getElementById('image_g'), this, function(pixel) { return pixel.filterGreen(128) });
+                    populateCanvas(document.getElementById('image_b'), this, function(pixel) { return pixel.filterBlue(128) });
                 };
                 const reader = new FileReader();
                 reader.onload = function (e) {
