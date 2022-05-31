@@ -12,9 +12,6 @@
             <p>
                 <input type="file" name="file" accept="image/*"/>
             </p>
-            <p>
-                <button type="submit">Rozložit</button>
-            </p>
         </form>
         <p>
             <canvas id="image_r"></canvas>
@@ -90,18 +87,14 @@
                 context.putImageData(imageData, 0, 0);
             }
 
-            function repaint(file, threshold) {
+            function repaint(imageData, threshold) {
                 const image = new Image();
                 image.onload = function () {
                     populateCanvas(document.getElementById('image_r'), this, function(pixel) { return pixel.filterRed(threshold) });
                     populateCanvas(document.getElementById('image_g'), this, function(pixel) { return pixel.filterGreen(threshold) });
                     populateCanvas(document.getElementById('image_b'), this, function(pixel) { return pixel.filterBlue(threshold) });
                 };
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    image.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
+                image.src = imageData;
             }
 
             (function() {
@@ -109,34 +102,36 @@
                 const thresholdInput = document.querySelector("input[name='threshold']");
                 const fileInput = document.querySelector("input[name='file']");
 
-                let threshold = 128;
-                document.querySelector('form').addEventListener('submit', function (e) {
-                    e.preventDefault();
-                    repaint(fileInput.files[0], threshold);
-                });
-                fileInput.addEventListener('change', function() {
-                    repaint(this.files[0], threshold);
-                });
-
+                let state = {
+                    threshold: 128,
+                    image: null
+                };
                 function repaintIfSelected() {
-                    const files = fileInput.files;
-                    if (files.length > 0) {
-                        repaint(files[0], threshold);
+                    if (state.image != null) {
+                        repaint(state.image, state.threshold);
                     }
                 }
 
+                fileInput.addEventListener('change', function() {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        state.image = e.target.result;
+                        repaintIfSelected();
+                    };
+                    reader.readAsDataURL(this.files[0]);
+                });
                 thresholdSliderInput.addEventListener('change', function() {
-                    threshold = this.value;
+                    state.threshold = this.value;
                     thresholdInput.value = this.value;
                     repaintIfSelected();
                 });
                 thresholdInput.addEventListener('change', function() {
-                    threshold = this.value;
+                    state.threshold = this.value;
                     thresholdSliderInput.value = this.value;
                     repaintIfSelected();
                 });
-                thresholdSliderInput.value = threshold;
-                thresholdInput.value = threshold;
+                thresholdSliderInput.value = state.threshold;
+                thresholdInput.value = state.threshold;
             })();
         </script>
     </body>
