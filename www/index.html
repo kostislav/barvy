@@ -5,8 +5,16 @@
     </head>
     <body>
         <form>
-            <input type="file" name="file" accept="image/*"/>
-            <button type="submit">Rozložit</button>
+            <p>
+                <input type="range" name="thresholdSlider" min="0" max="255"/>
+                <input type="text" name="threshold"/>
+            </p>
+            <p>
+                <input type="file" name="file" accept="image/*"/>
+            </p>
+            <p>
+                <button type="submit">Rozložit</button>
+            </p>
         </form>
         <p>
             <canvas id="image_r"></canvas>
@@ -82,12 +90,12 @@
                 context.putImageData(imageData, 0, 0);
             }
 
-            function repaint(file) {
+            function repaint(file, threshold) {
                 const image = new Image();
                 image.onload = function () {
-                    populateCanvas(document.getElementById('image_r'), this, function(pixel) { return pixel.filterRed(128) });
-                    populateCanvas(document.getElementById('image_g'), this, function(pixel) { return pixel.filterGreen(128) });
-                    populateCanvas(document.getElementById('image_b'), this, function(pixel) { return pixel.filterBlue(128) });
+                    populateCanvas(document.getElementById('image_r'), this, function(pixel) { return pixel.filterRed(threshold) });
+                    populateCanvas(document.getElementById('image_g'), this, function(pixel) { return pixel.filterGreen(threshold) });
+                    populateCanvas(document.getElementById('image_b'), this, function(pixel) { return pixel.filterBlue(threshold) });
                 };
                 const reader = new FileReader();
                 reader.onload = function (e) {
@@ -96,13 +104,40 @@
                 reader.readAsDataURL(file);
             }
 
-            document.querySelector('form').addEventListener('submit', function (e) {
-                e.preventDefault();
-                repaint(new FormData(this).get('file'));
-            });
-            document.querySelector("input[type='file']").addEventListener('change', function() {
-                repaint(this.files[0]);
-            });
+            (function() {
+                const thresholdSliderInput = document.querySelector("input[name='thresholdSlider']");
+                const thresholdInput = document.querySelector("input[name='threshold']");
+                const fileInput = document.querySelector("input[name='file']");
+
+                let threshold = 128;
+                document.querySelector('form').addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    repaint(fileInput.files[0], threshold);
+                });
+                fileInput.addEventListener('change', function() {
+                    repaint(this.files[0], threshold);
+                });
+
+                function repaintIfSelected() {
+                    const files = fileInput.files;
+                    if (files.length > 0) {
+                        repaint(files[0], threshold);
+                    }
+                }
+
+                thresholdSliderInput.addEventListener('change', function() {
+                    threshold = this.value;
+                    thresholdInput.value = this.value;
+                    repaintIfSelected();
+                });
+                thresholdInput.addEventListener('change', function() {
+                    threshold = this.value;
+                    thresholdSliderInput.value = this.value;
+                    repaintIfSelected();
+                });
+                thresholdSliderInput.value = threshold;
+                thresholdInput.value = threshold;
+            })();
         </script>
     </body>
 </html>
