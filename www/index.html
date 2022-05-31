@@ -38,27 +38,29 @@
                 }
 
                 filterRed(threshold) {
-                    return Pixel.#filter(this.#r, threshold);
+                    return Pixel.#filter(this.#r, threshold, RED);
                 }
 
                 filterGreen(threshold) {
-                    return Pixel.#filter(this.#g, threshold);
+                    return Pixel.#filter(this.#g, threshold, GREEN);
                 }
 
                 filterBlue(threshold) {
-                    return Pixel.#filter(this.#b, threshold);
+                    return Pixel.#filter(this.#b, threshold, BLUE);
                 }
 
-                static #filter(value, threshold) {
+                static #filter(value, threshold, color) {
                     if (value >= threshold) {
-                        return WHITE;
+                        return color;
                     } else {
-                        return BLACK;
+                        return WHITE;
                     }
                 }
             }
 
-            const BLACK = new Pixel(0, 0, 0);
+            const RED = new Pixel(255, 0, 0);
+            const GREEN = new Pixel(0, 255, 0);
+            const BLUE = new Pixel(0, 0, 255);
             const WHITE = new Pixel(255, 255, 255);
 
             function populateCanvas(canvasElement, image, transformation) {
