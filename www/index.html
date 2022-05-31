@@ -10,6 +10,14 @@
                 <input type="text" name="threshold"/>
             </p>
             <p>
+                <select name="scale">
+                    <option value="1">100 %</option>
+                    <option value="2">50 %</option>
+                    <option value="3">33 %</option>
+                    <option value="4">25 %</option>
+                </select>
+            </p>
+            <p>
                 <input type="file" name="file" accept="image/*"/>
             </p>
         </form>
@@ -68,11 +76,11 @@
             const BLUE = new Pixel(0, 0, 255);
             const WHITE = new Pixel(255, 255, 255);
 
-            function populateCanvas(canvasElement, image, transformation) {
+            function populateCanvas(canvasElement, image, scale, transformation) {
                 const context = canvasElement.getContext('2d');
                 const canvas = context.canvas;
-                const width = image.width;
-                const height = image.height;
+                const width = image.width / scale;
+                const height = image.height / scale;
                 canvas.width = width;
                 canvas.height = height;
                 context.drawImage(image, 0, 0, width, height);
@@ -87,12 +95,12 @@
                 context.putImageData(imageData, 0, 0);
             }
 
-            function repaint(imageData, threshold) {
+            function repaint(imageData, scale, threshold) {
                 const image = new Image();
                 image.onload = function () {
-                    populateCanvas(document.getElementById('image_r'), this, function(pixel) { return pixel.filterRed(threshold) });
-                    populateCanvas(document.getElementById('image_g'), this, function(pixel) { return pixel.filterGreen(threshold) });
-                    populateCanvas(document.getElementById('image_b'), this, function(pixel) { return pixel.filterBlue(threshold) });
+                    populateCanvas(document.getElementById('image_r'), this, scale, function(pixel) { return pixel.filterRed(threshold) });
+                    populateCanvas(document.getElementById('image_g'), this, scale, function(pixel) { return pixel.filterGreen(threshold) });
+                    populateCanvas(document.getElementById('image_b'), this, scale, function(pixel) { return pixel.filterBlue(threshold) });
                 };
                 image.src = imageData;
             }
@@ -101,36 +109,43 @@
                 const thresholdSliderInput = document.querySelector("input[name='thresholdSlider']");
                 const thresholdInput = document.querySelector("input[name='threshold']");
                 const fileInput = document.querySelector("input[name='file']");
+                const scaleInput = document.querySelector("select[name='scale']");
 
                 class State {
                     #threshold;
-                    #image;
+                    #scale = 1;
+                    #image = null;
                     #onChange;
 
                     constructor(initialThreshold, onChange) {
                         this.#threshold = initialThreshold;
-                        this.#image = null;
                         this.#onChange = onChange;
-                        onChange(initialThreshold, null);
+                        this.#notifyChange();
                     }
 
                     updateThreshold(newValue) {
-                        if (this.#threshold !== newValue) {
-                            this.#threshold = newValue;
-                            this.#onChange(this.#threshold, this.#image);
-                        }
+                        this.#threshold = newValue;
+                        this.#notifyChange();
+                    }
+                    updateScale(newValue) {
+                        this.#scale = newValue;
+                        this.#notifyChange();
                     }
                     updateFile(newValue) {
                         this.#image = newValue;
-                        this.#onChange(this.#threshold, this.#image);
+                        this.#notifyChange();
+                    }
+
+                    #notifyChange() {
+                        this.#onChange(this.#threshold, this.#scale, this.#image);
                     }
                 }
 
-                let state = new State(128, function(threshold, image) {
+                let state = new State(128, function(threshold, scale, image) {
                     thresholdInput.value = threshold;
                     thresholdSliderInput.value = threshold;
                     if (image != null) {
-                        repaint(image, threshold);
+                        repaint(image, scale, threshold);
                     }
                 });
 
@@ -146,6 +161,9 @@
                 });
                 thresholdInput.addEventListener('change', function() {
                     state.updateThreshold(this.value);
+                });
+                scaleInput.addEventListener('change', function() {
+                    state.updateScale(this.value);
                 });
                 document.querySelector('form').addEventListener('submit', function (e) {
                     e.preventDefault();
