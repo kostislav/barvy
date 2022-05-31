@@ -144,6 +144,7 @@
                 let state = new State(128, function(threshold, scale, image) {
                     thresholdInput.value = threshold;
                     thresholdSliderInput.value = threshold;
+                    scaleInput.value = scale;
                     if (image != null) {
                         repaint(image, scale, threshold);
                     }
