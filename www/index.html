@@ -147,6 +147,9 @@
                 thresholdInput.addEventListener('change', function() {
                     state.updateThreshold(this.value);
                 });
+                document.querySelector('form').addEventListener('submit', function (e) {
+                    e.preventDefault();
+                });
             })();
         </script>
     </body>
